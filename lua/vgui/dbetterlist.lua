@@ -30,8 +30,10 @@ function PANEL:Init()
 	self:SetDataHeight( 20 )
 
 	self.Columns = {}
+    /*
+        The lines to be added to the panel
+    */
 	self.Lines = {}
-
 	self:SetDirty( true )
 
 	self.container = vgui.Create("Panel" ,self)
@@ -39,6 +41,10 @@ function PANEL:Init()
 
 	self.VBar = vgui.Create( "DSimpleScroll", self )
 	self.VBar:SetZPos( 20 )
+end
+
+function PANEL:IsEmpty()
+    return table.IsEmpty(self.Lines)
 end
 
 function PANEL:RefreshLayout(w, h)
@@ -95,16 +101,19 @@ function PANEL:ResetColor(index)
 end
 
 function PANEL:HighlightLine(index, color, txtcolor)
+    local line = self.Lines[index]
+    if !IsValid(line) then return end
+
 	if txtcolor then
-		self.Lines[index]:SetTextColor(txtcolor)
+		line:SetTextColor(txtcolor)
 	end
 	if color then
-		self.Lines[index].Paint = function(panel, w, h)
+		line.Paint = function(panel, w, h)
 			surface.SetDrawColor(color)
 			surface.DrawRect(0, 0, w, h)
 		end
 	else
-		self.Lines[index].Paint = function() end
+		line.Paint = function() end
 		self:ResetColor(index)
 	end
 end
@@ -216,7 +225,7 @@ function PANEL:OnScrollbarAppear()
 	self:InvalidateLayout()
 end
 
-function PANEL:AddLine( strLine )
+function PANEL:AddLine(strLine)
 	self:SetDirty(true)
 	self:InvalidateLayout()
 
@@ -253,8 +262,8 @@ function PANEL:AddLine( strLine )
     Line:SetHoverBG(bg_color_hover)
 	Line:SetColumnText( 0, strLine )
 
-	local indexID = table.insert( self.Lines, Line )
-	Line:SetID( indexID )
+	local indexID = table.insert(self.Lines, Line)
+	Line:SetID(indexID)
 
 	return Line
 end

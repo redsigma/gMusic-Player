@@ -94,7 +94,11 @@ function PANEL:isAllowed()
 end
 
 function PANEL:AllowSeek(bool)
-	self.allow = bool
+    self.allow = bool
+end
+
+function PANEL:ReleaseSeek()
+    self.SeekClick:OnMouseReleased()
 end
 
 function PANEL:SetTextFont(font)

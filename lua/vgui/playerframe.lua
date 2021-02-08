@@ -7,7 +7,12 @@ AccessorFunc(PANEL, "m_iMinWidth", "MinWidth")
 AccessorFunc(PANEL, "m_iMinHeight", "MinHeight")
 
 local titleMargin
+/*
+    Indicates if server mode is enabled
+*/
 local serverOn = false
+local last_mode = false
+
 local colorServerState = Color(255, 150, 0, 255)
 local isTSS = false
 
@@ -106,8 +111,13 @@ function PANEL:SetFont(font)
 	self.buttonMode:SetFont(font)
 end
 
-function PANEL:isTSS()
+function PANEL:IsTSSEnabled()
 	return isTSS
+end
+
+function PANEL:playingFromAnotherMode()
+    -- print("last mode | IS server ON: ", last_mode, serverOn)
+    return last_mode != serverOn
 end
 
 function PANEL:SetTSSEnabled(bool)
@@ -120,12 +130,13 @@ function PANEL:SetTSSEnabled(bool)
 	isTSS = bool
 end
 
-function PANEL:SetTitleServerState(bool)
-	if bool then
+function PANEL:SetTitleServerState(selected_mode)
+	if selected_mode then
 		colorServerState = Color(20, 150, 240, 255)
 	else
 		colorServerState = Color(255, 150, 0, 255)
 	end
+    last_mode = selected_mode
 	self.TSS.Paint = function(panel, w, h)
 		surface.SetDrawColor(colorServerState)
 		surface.DrawRect(0, 0, w, h)
@@ -194,7 +205,7 @@ function PANEL:SwitchMode()
 	self:OnModeChanged()
 end
 
-function PANEL:IsServerOn()
+function PANEL:IsServerMode()
 	return serverOn
 end
 
@@ -286,6 +297,13 @@ function PANEL:Think()
 	if (self.y < 0) then
 		self:SetPos(self.x, 0)
 	end
+    self:OnUpdateUI()
+end
+
+/*
+    Callback for custom use
+*/
+function PANEL:OnUpdateUI()
 end
 
 function PANEL:Paint(w, h)

@@ -1,5 +1,5 @@
-local mediaplayer = nil
-local base_panel_colors = nil
+-- local mediaplayer = nil
+local shared_settings = nil
 
 local dermaBase = {}
 local view_context_menu = nil
@@ -24,9 +24,10 @@ surface.CreateFont( "arialDefault", {
 	outline = false,
 } )
 
-local function createMPlayer(ply)
-	mediaplayer:SyncSettings(ply)
-	mediaplayer:create(view_context_menu)
+local function createMPlayer()
+    dermaBase.create(view_context_menu)
+    dermaBase.painter.changeTheme(dermaBase.darkmode:GetChecked())
+    dermaBase.painter.update_colors()
 end
 
 hook.Add("ContextMenuCreated", "create_context", function(context_menu)
@@ -36,18 +37,18 @@ end)
 --[[-------------------------------------------------------------------------
 Runs if server not just Created
 ---------------------------------------------------------------------------]]--
-net.Receive( "sendServerSettings", function()
-	local serverSettings = net.ReadTable()
+-- net.Receive( "sendServerSettings", function()
+-- 	local serverSettings = net.ReadTable()
 
-	dermaBase.cbadminaccess:SetChecked(serverSettings.admin_server_access)
-	dermaBase.cbadmindir:SetChecked(serverSettings.admin_dir_access)
-end )
+-- 	dermaBase.cbadminaccess:SetChecked(serverSettings.admin_server_access)
+-- 	dermaBase.cbadmindir:SetChecked(serverSettings.admin_dir_access)
+-- end )
 
 
 --[[-------------------------------------------------------------------------
 First Run on server start
 ---------------------------------------------------------------------------]]--
-net.Receive("createMenu", function()
+net.Receive("cl_gmpl_create", function()
     dermaBase = include("includes/modules/meth_base.lua")(
         view_context_menu, contextMenuMargin)
 
@@ -57,89 +58,60 @@ net.Receive("createMenu", function()
 		dermaBase = include("includes/modules/meth_base.lua")(
             view_context_menu, contextMenuMargin)
 	end
+    shared_settings = include("includes/func/settings.lua")
+    shared_settings:set_admin_server_access(
+        dermaBase.cbadminaccess:GetChecked())
+    shared_settings:set_admin_dir_access(
+        dermaBase.cbadmindir:GetChecked())
 
     include("gmpl/cl_cvars.lua")(dermaBase)
 
 	require("musicplayerclass")
-	mediaplayer = Media(dermaBase)
+	dermaBase.mediaplayer = Media(dermaBase)
 
-	net.Start("serverFirstMade")
-	net.SendToServer()
+	dermaBase.song_data.load_from_disk()
+	createMPlayer()
 
-	local currentPlyIsAdmin = net.ReadBool()
-	mediaplayer:readFileSongs()
-	createMPlayer(currentPlyIsAdmin)
+    timer.Create("gmpl_sv_guard", 2, 0,
+        dermaBase.mediaplayer.sv_buffer_guard)
+    timer.Stop("gmpl_sv_guard")
 
-    -- print("Creating base panel:")
-    -- base_panel_colors = vgui.Create("DBasePanel")
-    -- base_panel_colors:say()
-end )
+    timer.Create("gmpl_cl_guard", 2, 0,
+        dermaBase.mediaplayer.cl_buffer_guard)
+    timer.Stop("gmpl_cl_guard")
 
-net.Receive( "getSettingsFromFirstAdmin", function()
-    if IsValid(LocalPlayer()) and LocalPlayer():IsAdmin() then
-		local storeCurrentSettings = {}
-		storeCurrentSettings.admin_server_access =
-            GetConVar("gmpl_svadminplay"):GetBool()
-		storeCurrentSettings.admin_dir_access =
-            GetConVar("gmpl_svadmindir"):GetBool()
+    timer.Create("gmpl_live_core", 0.07, 0,
+    dermaBase.mediaplayer.real_time_seek)
+    timer.Pause("gmpl_live_core")
 
-		net.Start("updateSettingsFromFirstAdmin")
-		net.WriteTable(storeCurrentSettings)
-
-		if storeCurrentSettings.admin_dir_access then
-			net.WriteTable(mediaplayer:getLeftSongList())
-			net.WriteTable(mediaplayer:getRightSongList())
-		end
-		net.SendToServer()
-	end
-end )
----------------------------------------------------------------------------]]--
+    -- dermaBase.mediaplayer
+    -- print("\nshared settings cl_gmpl:", shared_settings)
+    -- PrintTable(shared_settings)
+end)
 
 
---[[-------------------------------------------------------------------------
-Server convars
----------------------------------------------------------------------------]]--
-net.Receive( "refreshAdminAccess", function(length, sender)
-	local tmpVal = net.ReadBool()
-	dermaBase.cbadminaccess:SetChecked(tmpVal)
-end )
-
-net.Receive( "refreshAdminAccessDir", function(length, sender)
-	local tmpVal = net.ReadBool()
-	dermaBase.cbadmindir:SetChecked(tmpVal)
-end )
----------------------------------------------------------------------------]]--
-
-net.Receive("openmenu", function()
-	local adminHost = net.ReadType()
-	mediaplayer:SetSongHost(adminHost)
-    mediaplayer:SyncSettings(nil)
-    mediaplayer:show()
-end )
-
-net.Receive("openmenucontext", function()
-	local adminHost = net.ReadType()
-	mediaplayer:SetSongHost(adminHost)
-    mediaplayer:SyncSettings(nil)
-    mediaplayer:show()
-end )
+net.Receive("cl_gmpl_show", function()
+	local live_host = net.ReadType()
+    dermaBase.interface.set_song_host(live_host)
+    dermaBase.InvalidateUI()
+    dermaBase.interface.show()
+end)
 
 concommand.Add("gmplshow", function()
-	-- showMPlayer()
-    mediaplayer:SyncSettings(nil)
-    mediaplayer:show()
+    dermaBase.InvalidateUI()
+    dermaBase.interface.show()
 end)
 
 
 cvars.AddChangeCallback( "gmpl_vol", function( convar , oldValue , newValue  )
-	if !istable(mediaplayer) then return end
+	if !istable(dermaBase.mediaplayer) then return end
 	if (isnumber(util.StringToType( newValue, "Float" ))) then
 		-- if istable(mediaplayer) then
-			mediaplayer:SetVolume(newValue)
+        dermaBase.interface.set_volume(newValue)
 		-- end
 	elseif (isnumber(util.StringToType( oldValue, "Float" ))) then
 		-- if istable(mediaplayer) then
-			mediaplayer:SetVolume(oldValue)
+            dermaBase.interface.set_volume(oldValue)
 			MsgC(Color(255, 90, 90),
                 "Only 0 - 100 value is allowed. Keeping value "
                 .. oldValue .. "\n")

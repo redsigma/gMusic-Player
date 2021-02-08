@@ -116,6 +116,7 @@ function PANEL:OnButtonRebuild()
 	bottomPanel.btnNo:Dock(RIGHT)
 	bottomPanel.btnNo:DockMargin(4, 0, 0, 0)
 	bottomPanel.btnNo:SetText( "No" )
+    bottomPanel.btnNo:SetTextColor(Color(0, 0, 0))
 	bottomPanel.btnNo:SetFont( "GModNotify" )
 	bottomPanel.btnNo.Paint = function(panel, w, h)
 		surface.SetDrawColor( dialogWhite )
@@ -128,6 +129,7 @@ function PANEL:OnButtonRebuild()
 	bottomPanel.btnYes = vgui.Create( "DButton", bottomPanel )
 	bottomPanel.btnYes:Dock(FILL)
 	bottomPanel.btnYes:SetText( "YES" )
+    bottomPanel.btnYes:SetTextColor(Color(0, 0, 0))
 	bottomPanel.btnYes:SetFont( "GModNotify" )
 	bottomPanel.btnYes.Paint = function(panel, w, h)
 		surface.SetDrawColor( dialogWhite )
@@ -190,11 +192,11 @@ function PANEL:OnRemove()
 end
 
 
-function PANEL:AddLineLeft(var)
-	self.list1:AddLine(var).Columns[1]:SetTextColor(lineTextColor)
+function PANEL:AddLineLeft(text)
+	self.list1:AddLine(text).Columns[1]:SetTextColor(lineTextColor)
 end
-function PANEL:AddLineRight(var)
-	self.list2:AddLine(var).Columns[1]:SetTextColor(lineTextColor)
+function PANEL:AddLineRight(text)
+	self.list2:AddLine(text).Columns[1]:SetTextColor(lineTextColor)
 end
 
 

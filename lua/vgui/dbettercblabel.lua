@@ -16,11 +16,10 @@ function PANEL:Init()
 		self:OnCvarChange(oldVal, newVal)
 	end
 
-	self.box.AfterChange = function( panel, val)
-
-		if self.box:GetAdminOnly() then
-			if self.box:GetIsAdmin() then
-				self:AfterChange(val)
+	self.box.AfterChange = function(panel, val)
+		if self.box:IsAdminOnly() then
+			if LocalPlayer():IsAdmin() then
+			    self:AfterChange(val)
 			end
 		else
 			self:AfterChange(val)
@@ -69,6 +68,10 @@ function PANEL:IsEnabled()
 	return self.m_bEnabled
 end
 
+function PANEL:RefreshConVar()
+    self.box:RefreshConVar()
+end
+
 function PANEL:SetPos(x, y)
 	self.x = x
 	self.y = y
@@ -87,16 +90,16 @@ function PANEL:OnCvarWrong(oldValue, newValue)
 	-- override if any problem happened
 end
 
-function PANEL:SetAdminOnly( bool )
-	self.box:SetAdminOnly( bool )
+function PANEL:SetAdminOnly(bool)
+	self.box:SetAdminOnly(bool)
 end
 
-function PANEL:SetCheckedSilent( val )
-	self.box:SetCheckedSilent( val )
+function PANEL:IsAdminOnly()
+	self.box:IsAdminOnly()
 end
 
-function PANEL:SetChecked( val )
-	self.box:SetChecked( val )
+function PANEL:SetChecked(bool)
+	self.box:SetChecked(bool)
 end
 
 function PANEL:GetChecked()
@@ -108,11 +111,6 @@ end
 
 function PANEL:DoClick()
 	self.box:Toggle()
-end
-
-
-function PANEL:ToggleOne()
-	self.box:ToggleOne()
 end
 
 function PANEL:Toggle()
@@ -185,10 +183,6 @@ end
 function PANEL:OnCustomCvarChange(newValue)
 end
 
-function PANEL:SetIsAdmin(isAdmin)
-	self.box:SetIsAdmin(isAdmin)
-end
-
 function PANEL:addCheckbox(index, checkbox)
 	self.box:addCheckbox(index, checkbox)
 end
@@ -214,7 +208,7 @@ function PANEL:UpdateSize()
 	end
 end
 
--- Needed to sync Items
+// Needed to sync Items
 function PANEL:UpdateThink()
 	self.box:ConVarNumberThink()
 end

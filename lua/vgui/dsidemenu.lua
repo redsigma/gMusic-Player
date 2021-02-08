@@ -92,6 +92,10 @@ function PANEL:SetActiveButton( active )
 
 end
 
+function PANEL:IsVisible()
+    return self.Navigation:IsVisible()
+end
+
 function PANEL:PerformLayout(width, height)
 	if self.Navigation:IsVisible() then
 		self.Content:SetSize(width - 100, height)

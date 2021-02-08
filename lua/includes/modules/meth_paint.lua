@@ -1,5 +1,5 @@
 /*
-    Painter used to to color the panels. Color values are shared among all
+    Painter used to color the panels. Color values are shared among all
     panels
 */
 local paintMethod = {}

@@ -57,11 +57,12 @@ function PANEL:Clear()
 	self.Items = {}
 end
 
-function PANEL:SyncItems(isAdmin)
-	for k, checkbox in pairs( self.Items ) do
-		checkbox:SetIsAdmin(isAdmin)
-		checkbox:UpdateThink()
-		checkbox:SetIsAdmin(nil)
+/*
+    Updates the settings page elements according to match the cvar values
+*/
+function PANEL:InvalidateItems()
+	for k, checkbox in pairs(self.Items) do
+	    checkbox:UpdateThink()
 	end
 end
 
@@ -80,11 +81,10 @@ function PANEL:Category( strLabel )
 	return cat
 end
 
-function PANEL:CheckBox( isChecked, strLabel, adminOnly )
+function PANEL:CheckBox(strLabel, adminOnly)
 	local left = vgui.Create( "DBetterCheckBoxLabel", self.panel )
 	left:SetPos(8, itemCount)
 	left:SetFont(self:GetDefaultFont())
-	left:SetChecked(isChecked)
 	left:SetAdminOnly(adminOnly)
 	left:SetTextColor(checkboxTextColor)
 	left:SetText( strLabel )
@@ -95,6 +95,11 @@ function PANEL:CheckBox( isChecked, strLabel, adminOnly )
 	return left
 end
 
+/*
+    todo:
+        - no need for default check due to cvars
+        - separate it to avoid bloat
+*/
 function PANEL:MultiCheckBox( nrChecked, strLabel, adminOnly, optionNumber )
 	local multiCheck = vgui.Create( "Panel", self.panel )
 	multiCheck:SetPos(8, itemCount)
@@ -114,8 +119,8 @@ function PANEL:MultiCheckBox( nrChecked, strLabel, adminOnly, optionNumber )
 		for i = 1, optionNumber do
 			local option = vgui.Create( "DBetterCheckBoxLabel", multiCheck )
 			option:SetID(i)
-			option.box.DoClick = option.box.ToggleOne
-			option.Toggle = option.ToggleOne
+			-- option.box.DoClick = option.box.ToggleOne
+			-- option.Toggle = option.ToggleOne
 			left:addCheckbox(i, option)
 			option:SetFont(self:GetDefaultFont())
 			option:SetTextColor(checkboxTextColor)
